@@ -1,0 +1,34 @@
+[package]
+name = "pixeldeck-agent"
+version = "0.2.0"
+edition = "2021"
+description = "PixelDeck Windows agent: a background app that receives hotkeys and actions from the PixelDeck Android dashboard"
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "time", "sync", "io-util", "signal"] }
+tokio-tungstenite = "0.24"
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+mdns-sd = "0.11"
+local-ip-address = "0.6"
+rand = "0.8"
+hex = "0.4"
+qrcode = { version = "0.14", default-features = false }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = ["Win32_UI_Input_KeyboardAndMouse", "Win32_Foundation"] }
+tao = "0.30"
+# default features off: the default "common-controls-v6" needs an embedded application manifest
+tray-icon = { version = "0.19", default-features = false }
+softbuffer = "0.4"
+winreg = "0.52"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"

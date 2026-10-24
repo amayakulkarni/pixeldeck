@@ -1,0 +1,26 @@
+# Local build guide for the maintainer (kept out of the repository on purpose)
+BUILD_GUIDE.md
+
+# Helper folder used to move files between machines
+.update/
+
+# Build output
+target/
+build/
+.gradle/
+*.apk
+*.aab
+*.exe
+dist/
+
+# IDE / OS
+.idea/
+*.iml
+local.properties
+.DS_Store
+Thumbs.db
+
+# Secrets that must never be committed
+*.jks
+*.keystore
+keystore.properties
