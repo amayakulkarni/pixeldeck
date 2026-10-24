@@ -33,6 +33,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -77,9 +78,15 @@ private fun timeText(hour: Int, minute: Int, use24h: Boolean): String =
 @Composable
 fun TimersPage(settings: Settings, modifier: Modifier = Modifier) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        PanelCard("Timers", Modifier.weight(1f).fillMaxSize()) { TimersList(showEntry = true) }
-        PanelCard("Alarms", Modifier.weight(1f).fillMaxSize()) { AlarmsList(settings.use24h) }
-        PanelCard("Stopwatch", Modifier.weight(0.8f).fillMaxSize()) { StopwatchView() }
+        PanelCard("Timers", Modifier.weight(1f).fillMaxSize()) {
+            Column(Modifier.verticalScroll(rememberScrollState())) { TimersList(showEntry = true) }
+        }
+        PanelCard("Alarms", Modifier.weight(1f).fillMaxSize()) {
+            Column(Modifier.verticalScroll(rememberScrollState())) { AlarmsList(settings.use24h) }
+        }
+        PanelCard("Stopwatch", Modifier.weight(0.8f).fillMaxSize()) {
+            Column(Modifier.verticalScroll(rememberScrollState())) { StopwatchView() }
+        }
     }
 }
 
@@ -148,13 +155,8 @@ private fun TimersList(showEntry: Boolean, maxRows: Int = Int.MAX_VALUE) {
         if (timers.isEmpty()) {
             Text("No timers running", color = Muted)
         } else {
-            val shown = timers.sortedBy { it.endAt }.take(maxRows)
-            if (showEntry) {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(shown, key = { it.id }) { TimerRow(it, now) { id -> scope.launch { Scheduler.cancelTimer(ctx, id) } } }
-                }
-            } else {
-                shown.forEach { TimerRow(it, now) { id -> scope.launch { Scheduler.cancelTimer(ctx, id) } } }
+            timers.sortedBy { it.endAt }.take(maxRows).forEach { t ->
+                key(t.id) { TimerRow(t, now) { id -> scope.launch { Scheduler.cancelTimer(ctx, id) } } }
             }
         }
     }
@@ -194,9 +196,9 @@ private fun AlarmsList(use24h: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         PrimaryButton("New alarm", { creating = true })
         if (alarms.isEmpty()) Text("No alarms yet", color = Muted)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            items(alarms.sortedWith(compareBy({ it.hour }, { it.minute })), key = { it.id }) { a ->
-                Row(
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            alarms.sortedWith(compareBy({ it.hour }, { it.minute })).forEach { a ->
+                key(a.id) { Row(
                     Modifier.fillMaxWidth().clickable { editing = a }.padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -215,7 +217,7 @@ private fun AlarmsList(use24h: Boolean) {
                     IconButton(onClick = { scope.launch { Scheduler.deleteAlarm(ctx, a.id) } }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete alarm")
                     }
-                }
+                } }
             }
         }
     }
@@ -306,8 +308,8 @@ private fun StopwatchView() {
             GhostButton("Lap", { StopwatchState.lap(System.currentTimeMillis()) })
             GhostButton("Reset", { StopwatchState.reset() })
         }
-        LazyColumn {
-            items(StopwatchState.laps.withIndex().toList().asReversed(), key = { it.index }) { (i, t) ->
+        Column {
+            StopwatchState.laps.withIndex().toList().asReversed().forEach { (i, t) ->
                 val previous = if (i == 0) 0L else StopwatchState.laps[i - 1]
                 Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
                     Text("Lap ${i + 1}", Modifier.weight(1f), color = Muted)

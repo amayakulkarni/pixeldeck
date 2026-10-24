@@ -19,16 +19,21 @@ class LayoutTest {
         assertTrue(out.flatten().none { it == "notifications" })
     }
 
+    @Test fun oldCrampedDefaultIsUpgraded() {
+        val old = listOf(listOf("clock", "timers", "calendar"), listOf("notifications"), listOf("deck"))
+        assertEquals(Panels.DEFAULT_LAYOUT, Panels.sanitize(old))
+    }
+
     @Test fun moveUpAndDown() {
         val down = Panels.move(start, "clock", 0, 1)
-        assertEquals(listOf("timers", "clock", "calendar"), down[0])
+        assertEquals(listOf("calendar", "clock"), down[0])
         assertEquals(start, Panels.move(start, "clock", 0, -1))   // already at top
     }
 
     @Test fun moveAcrossColumns() {
         val moved = Panels.move(start, "calendar", 1, 0)
-        assertEquals(listOf("clock", "timers"), moved[0])
-        assertEquals(listOf("notifications", "calendar"), moved[1])
+        assertEquals(listOf("clock"), moved[0])
+        assertEquals(listOf("notifications", "calendar", "timers"), moved[1])
         assertEquals(start, Panels.move(start, "deck", 1, 0))     // already in the last column
     }
 
@@ -37,8 +42,8 @@ class LayoutTest {
         assertEquals(listOf("calendar"), Panels.hidden(hiddenLayout))
         val shown = Panels.setVisible(hiddenLayout, "calendar", true)
         assertTrue(Panels.hidden(shown).isEmpty())
-        // goes to the shortest column (the first one of equal length)
-        assertEquals(listOf("notifications", "calendar"), shown[1])
+        // goes to the shortest column (the first of equal length)
+        assertEquals(listOf("clock", "calendar"), shown[0])
     }
 
     @Test fun everyPanelIsInTheDefaultLayout() {

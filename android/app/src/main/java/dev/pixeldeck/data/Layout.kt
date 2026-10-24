@@ -19,6 +19,13 @@ object Panels {
     val COMPACT = setOf("clock", "timers")
 
     val DEFAULT_LAYOUT: List<List<String>> = listOf(
+        listOf("clock", "calendar"),
+        listOf("notifications", "timers"),
+        listOf("deck"),
+    )
+
+    /** The first 0.2.0 default stacked Clock, Timers and Calendar in one column, which left the Calendar almost no height. */
+    private val SUPERSEDED_DEFAULT: List<List<String>> = listOf(
         listOf("clock", "timers", "calendar"),
         listOf("notifications"),
         listOf("deck"),
@@ -30,6 +37,7 @@ object Panels {
 
     /** Drops unknown and duplicate keys and pads or trims to exactly [COLUMNS] columns. */
     fun sanitize(layout: List<List<String>>): List<List<String>> {
+        if (layout == SUPERSEDED_DEFAULT) return DEFAULT_LAYOUT
         val seen = HashSet<String>()
         val cleaned = layout.take(COLUMNS).map { column ->
             column.filter { it in KNOWN && seen.add(it) }
